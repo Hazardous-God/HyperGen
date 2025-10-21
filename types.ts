@@ -33,8 +33,6 @@ export type MediaItem = {
 
 // This is to make the gif.js library available in the window scope with types
 declare global {
-  // FIX: Created a named interface `AIStudio` to comply with existing declarations and avoid type conflicts.
-  // The error message indicated that `window.aistudio` should be of type `AIStudio`.
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
     openSelectKey: () => Promise<void>;
@@ -42,7 +40,8 @@ declare global {
 
   interface Window {
     GIF: any;
-    // FIX: Made the 'aistudio' property optional to resolve the "All declarations of 'aistudio' must have identical modifiers" error. This ensures compatibility with other potential declarations on the global Window object.
+    // FIX: Made 'aistudio' optional to resolve the "All declarations of 'aistudio' must have identical modifiers" error.
+    // This aligns this declaration with its usage in the application where it is conditionally checked.
     aistudio?: AIStudio;
   }
 }

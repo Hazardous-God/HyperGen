@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { ControlPanel } from './components/ControlPanel';
@@ -64,9 +65,13 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
       let errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-       if (errorMessage.includes("API key not valid")) {
-        errorMessage = "Your API key is not valid. Please select a new key and try again.";
-        // Optionally reset key selection state if possible
+      // As per guidelines, if the API key is invalid, prompt the user to select a new one.
+      if (errorMessage.includes("API key not valid") || errorMessage.includes("Requested entity was not found")) {
+        errorMessage = "Your API key seems to be invalid. Please select a new API key to continue.";
+        if (window.aistudio) {
+            // Re-open the key selection dialog for the user
+            window.aistudio.openSelectKey();
+        }
       }
       setError(errorMessage);
     } finally {

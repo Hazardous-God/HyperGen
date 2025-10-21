@@ -1,0 +1,5 @@
+{
+  "name": "HyperGen Image Generator",
+  "description": "A hyper-intuitive AI Image generation platform powered by multiple Gemini models. Features include an AI prompt optimizer, style toggles, negative prompts, aspect ratio control, and a storyboard creator for generating sequential and animated scenes with high character and art consistency.",
+  "requestFramePermissions": []
+}

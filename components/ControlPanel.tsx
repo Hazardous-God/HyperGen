@@ -4,6 +4,7 @@ import { MODELS, ASPECT_RATIOS, STYLES, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS }
 import { ToggleSwitch } from './ToggleSwitch';
 import { StoryboardCreator } from './StoryboardCreator';
 import { fileToBase64 } from '../services/geminiService';
+import { sanitizeTextPrompt, sanitizeImage } from '../services/securityService';
 
 
 interface ControlPanelProps {
@@ -39,21 +40,31 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerate, isLoadin
     const file = e.target.files?.[0];
     if (file) {
       const base64 = await fileToBase64(file);
-      setReferenceImage(base64);
+      // Sanitize the uploaded image to strip metadata before use
+      const sanitizedBase64 = await sanitizeImage(base64);
+      setReferenceImage(sanitizedBase64);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Sanitize all text inputs before generation
+    const sanitizedPrompt = sanitizeTextPrompt(prompt);
+    const sanitizedNegativePrompt = sanitizeTextPrompt(negativePrompt);
+    const sanitizedScenes = scenes.map(scene => ({
+      ...scene,
+      prompt: sanitizeTextPrompt(scene.prompt),
+    }));
+
     onGenerate({
-      prompt,
-      negativePrompt,
+      prompt: sanitizedPrompt,
+      negativePrompt: sanitizedNegativePrompt,
       model,
       aspectRatio: activeTab === 'video' ? videoAspectRatio : aspectRatio,
       numberOfImages,
       isOptimizerEnabled,
       styles,
-      scenes,
+      scenes: sanitizedScenes,
       activeTab,
       videoResolution,
       referenceImage,

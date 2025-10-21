@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality, GenerateContentResponse, Part } from "@google/genai";
 import type { GenerationConfig, ImageModel } from "../types";
+import { sanitizeImage } from './securityService';
 
 const getAIClient = () => {
   if (!process.env.API_KEY) {
@@ -111,7 +112,10 @@ export const generateImages = async ({ prompt, model, numberOfImages, aspectRati
       }
     }
   }
-  return images;
+
+  // Sanitize all generated images before returning them to the app
+  const sanitizedImages = await Promise.all(images.map(img => sanitizeImage(img)));
+  return sanitizedImages;
 };
 
 export const generateStoryboardImages = async (

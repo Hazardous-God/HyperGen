@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { GenerationConfig, Scene, ImageModel } from '../types';
-import { MODELS, ASPECT_RATIOS, STYLES, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS } from '../constants';
+import { MODELS, ASPECT_RATIOS, STYLES, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS, NEGATIVE_PROMPT_PRESETS } from '../constants';
 import { ToggleSwitch } from './ToggleSwitch';
 import { StoryboardCreator } from './StoryboardCreator';
 import { fileToBase64 } from '../services/geminiService';
@@ -14,15 +14,17 @@ interface ControlPanelProps {
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerate, isLoading }) => {
   const [activeTab, setActiveTab] = useState<'single' | 'storyboard' | 'video'>('single');
-  const [prompt, setPrompt] = useState<string>('A photorealistic image of an astronaut riding a horse on Mars');
-  const [negativePrompt, setNegativePrompt] = useState<string>('blurry, low quality, cartoon');
+  const [prompt, setPrompt] = useState<string>('');
+  const [negativePrompt, setNegativePrompt] = useState<string>('');
+  const [customNegativePrompt, setCustomNegativePrompt] = useState<string>('');
+  const [activeNegativePresets, setActiveNegativePresets] = useState<string[]>([]);
   const [model, setModel] = useState<ImageModel>(MODELS[0].id);
   const [aspectRatio, setAspectRatio] = useState<string>(ASPECT_RATIOS[1]);
   const [videoAspectRatio, setVideoAspectRatio] = useState<string>(VIDEO_ASPECT_RATIOS[0]);
   const [videoResolution, setVideoResolution] = useState<string>(VIDEO_RESOLUTIONS[0]);
   const [numberOfImages, setNumberOfImages] = useState<number>(1);
   const [isOptimizerEnabled, setIsOptimizerEnabled] = useState<boolean>(true);
-  const [styles, setStyles] = useState<string[]>(['Photorealistic', 'Concept Art']);
+  const [styles, setStyles] = useState<string[]>([]);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [scenes, setScenes] = useState<Scene[]>([
     { id: '1', prompt: 'A knight stands before a giant, glowing castle gate at dusk.' },
@@ -30,9 +32,26 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerate, isLoadin
     { id: '3', prompt: 'A mysterious figure emerges from the shadows behind the throne.' }
   ]);
   
+  // Combine presets and custom text into the final negative prompt
+  useEffect(() => {
+    const presetPrompts = NEGATIVE_PROMPT_PRESETS
+      .filter(p => activeNegativePresets.includes(p.label))
+      .map(p => p.prompt)
+      .join(', ');
+
+    const combined = [presetPrompts, customNegativePrompt].filter(Boolean).join(', ');
+    setNegativePrompt(combined);
+  }, [activeNegativePresets, customNegativePrompt]);
+
   const handleStyleToggle = (style: string) => {
     setStyles(prev => 
       prev.includes(style) ? prev.filter(s => s !== style) : [...prev, style]
+    );
+  };
+
+  const handleNegativePresetToggle = (label: string) => {
+    setActiveNegativePresets(prev =>
+      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
     );
   };
 
@@ -106,7 +125,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerate, isLoadin
               onChange={e => setPrompt(e.target.value)}
               className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:outline-none"
               rows={4}
-              placeholder={activeTab === 'video' ? "e.g., A cinematic shot of a car driving on a rainy night" : "e.g., An astronaut on a horse"}
+              placeholder={activeTab === 'video' ? "e.g., A cinematic shot of a car driving on a rainy night" : "e.g., An astronaut riding a horse on Mars"}
             />
           </>
         )}
@@ -123,12 +142,24 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onGenerate, isLoadin
         )}
       
         <label className="text-gray-300">Negative Prompt</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {NEGATIVE_PROMPT_PRESETS.map(preset => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => handleNegativePresetToggle(preset.label)}
+              className={`px-3 py-1 text-xs rounded-full transition-colors duration-200 ${activeNegativePresets.includes(preset.label) ? 'bg-red-500 text-white' : 'bg-gray-700 hover:bg-gray-600'}`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
         <textarea
-            value={negativePrompt}
-            onChange={e => setNegativePrompt(e.target.value)}
+            value={customNegativePrompt}
+            onChange={e => setCustomNegativePrompt(e.target.value)}
             className="w-full p-2 bg-gray-700 rounded-md border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             rows={2}
-            placeholder="e.g., blurry, text, watermark"
+            placeholder="Add custom negatives (e.g., blurry, text)"
         />
 
         {activeTab !== 'video' && (

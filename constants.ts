@@ -17,3 +17,12 @@ export const STYLES = [
 export const GOOGLE_FONTS = [
   'Roboto', 'Anton', 'Bangers', 'Lobster', 'Caveat', 'Press Start 2P'
 ];
+
+export const NEGATIVE_PROMPT_PRESETS = [
+  { label: 'Fix Hands', prompt: 'deformed hands, extra fingers, missing fingers, bad anatomy, fused fingers, mutated hands' },
+  { label: 'Fix Feet', prompt: 'deformed feet, extra toes, missing toes, bad anatomy, fused toes, mutated feet' },
+  { label: 'Fix Limbs', prompt: 'deformed limbs, extra arms, extra legs, missing arms, missing legs, malformed limbs, fused limbs' },
+  { label: 'Improve Faces', prompt: 'ugly, deformed face, disfigured, bad eyes, crooked face, mutated face, blurry face' },
+  { label: 'Remove Text', prompt: 'text, watermark, signature, username, artist name, logo' },
+  { label: 'Quality', prompt: 'low quality, blurry, noisy, jpeg artifacts, compression artifacts, poorly drawn' },
+];
